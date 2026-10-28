@@ -5,7 +5,9 @@
 # that NGINX source tarball and its signature from nginx.org, verifies the
 # signature against the pinned keys (scripts/verify-nginx-source.sh) and
 # records the tarball's SHA-256. Rewrites $VERSIONS_FILE (default versions.json)
-# only if something changed, and prints the added NGF versions, one per line.
+# only if something changed, regenerates the "Supported NGF versions" table in
+# $README_FILE (default README.md) to match, and prints the added NGF versions,
+# one per line.
 # If NOTES_FILE is set, appends one line per added row there with the NGINX
 # version and the digest of the image `nginx -V` ran in (for the PR body).
 #
@@ -15,6 +17,7 @@ set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
 file=${VERSIONS_FILE:-versions.json}
+readme=${README_FILE:-README.md}
 image=${NGF_IMAGE:-ghcr.io/nginx/nginx-gateway-fabric/nginx}
 keep=3
 verify=${VERIFY_SCRIPT:-$here/verify-nginx-source.sh}
@@ -81,6 +84,20 @@ done
 # Newest three only, newest first.
 jq --argjson keep "$keep" 'sort_by(.ngf | split(".") | map(tonumber)) | reverse | .[:$keep]' "$work/rows.json" >"$work/final.json"
 if ! cmp -s "$work/final.json" "$file"; then
+	jq -r '.[] | "| \(.ngf) | \(.nginx) |"' "$work/final.json" >"$work/rows.md"
+	awk -v rows="$work/rows.md" '
+		/^## / { section = ($0 == "## Supported NGF versions") }
+		section && !done && /^\| *NGF *\| *NGINX *\|/ {
+			print
+			if ((getline sep) > 0) print sep
+			while ((getline row < rows) > 0) print row
+			skip = 1; done = 1; next
+		}
+		skip && /^\|/ { next }
+		{ skip = 0; print }
+		END { if (!done) exit 1 }
+	' "$readme" >"$work/README.md" || { echo "$0: no NGF | NGINX table under \"## Supported NGF versions\" in $readme" >&2; exit 1; }
 	cp "$work/final.json" "$file"
+	cp "$work/README.md" "$readme"
 fi
 printf '%s' "$added"

@@ -57,19 +57,32 @@ esac
 ]
 `
 
-	run1 := func(tags string, extra ...string) (string, string, error) {
+	readmeStart := "# Module\n\n## Supported NGF versions\n\nIntro.\n\n| NGF | NGINX |\n|---|---|\n| 2.8.0 | 1.31.7 |\n| 2.7.0 | 1.7.0 |\n\nAfter the table.\n\n## Directives\n\n| Name | Meaning |\n|---|---|\n| a | b |\n"
+	readme := filepath.Join(dir, "README.md")
+
+	runWith := func(readmeBody, tags string, extra ...string) (string, string, error) {
 		f := filepath.Join(dir, "versions.json")
 		if err := os.WriteFile(f, []byte(start), 0o644); err != nil {
 			t.Fatal(err)
 		}
+		if err := os.WriteFile(readme, []byte(readmeBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
 		notes := filepath.Join(dir, "notes.md")
 		os.Remove(notes)
-		env := append([]string{"PATH=" + bin + ":" + os.Getenv("PATH"), "VERSIONS_FILE=" + f,
+		env := append([]string{"PATH=" + bin + ":" + os.Getenv("PATH"), "VERSIONS_FILE=" + f, "README_FILE=" + readme,
 			"NGF_TAGS=" + tags, "VERIFY_SCRIPT=" + verify, "NOTES_FILE=" + notes}, extra...)
 		out, err := run(t, env, "../../scripts/ngf-watch.sh")
 		got, _ := os.ReadFile(f)
 		n, _ := os.ReadFile(notes)
 		return out + "\x00" + string(n), string(got), err
+	}
+	run1 := func(tags string, extra ...string) (string, string, error) {
+		return runWith(readmeStart, tags, extra...)
+	}
+	readREADME := func() string {
+		b, _ := os.ReadFile(readme)
+		return string(b)
 	}
 
 	t.Run("adds new, keeps newest three, ignores prereleases and junk", func(t *testing.T) {
@@ -93,6 +106,11 @@ esac
 				t.Errorf("notes lack %q:\n%s", w, out)
 			}
 		}
+		want := strings.Replace(readmeStart, "| 2.8.0 | 1.31.7 |\n| 2.7.0 | 1.7.0 |\n",
+			"| 2.10.1 | 1.10.1 |\n| 2.9.0 | 1.9.0 |\n| 2.8.0 | 1.31.7 |\n", 1)
+		if r := readREADME(); r != want {
+			t.Errorf("README table not regenerated from versions.json:\n%s\nwant:\n%s", r, want)
+		}
 	})
 
 	t.Run("no change leaves the file alone", func(t *testing.T) {
@@ -102,6 +120,9 @@ esac
 		}
 		if got != start {
 			t.Errorf("file rewritten:\n%s", got)
+		}
+		if r := readREADME(); r != readmeStart {
+			t.Errorf("README rewritten:\n%s", r)
 		}
 		if strings.Split(out, "\x00")[0] != "" {
 			t.Errorf("printed additions: %q", out)
@@ -115,6 +136,23 @@ esac
 		}
 		if got != start {
 			t.Errorf("file modified despite failure:\n%s", got)
+		}
+		if r := readREADME(); r != readmeStart {
+			t.Errorf("README modified despite failure:\n%s", r)
+		}
+	})
+
+	t.Run("README without the versions table is refused", func(t *testing.T) {
+		body := "# Module\n\n## Directives\n\n| NGF | NGINX |\n|---|---|\n| 2.8.0 | 1.31.7 |\n"
+		out, got, err := runWith(body, "v2.9.0\nv2.8.0")
+		if err == nil || !strings.Contains(out, "Supported NGF versions") {
+			t.Errorf("accepted: %v\n%s", err, out)
+		}
+		if got != start {
+			t.Errorf("versions.json modified despite failure:\n%s", got)
+		}
+		if r := readREADME(); r != body {
+			t.Errorf("README modified despite failure:\n%s", r)
 		}
 	})
 }

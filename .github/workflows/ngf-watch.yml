@@ -42,7 +42,7 @@ jobs:
             echo "versions=$(printf '%s' "$added" | paste -sd, -)"
             echo "changed=true"
           } >> "$GITHUB_OUTPUT"
-          git --no-pager diff versions.json
+          git --no-pager diff versions.json README.md
       - name: Open the pull request
         if: steps.update.outputs.changed == 'true'
         env:
@@ -60,7 +60,7 @@ jobs:
             exit 0
           fi
           {
-            echo "Adds the NGF release(s) below to \`versions.json\` (newest three kept; older rows drop out)."
+            echo "Adds the NGF release(s) below to \`versions.json\` (newest three kept; older rows drop out) and regenerates the README's supported-versions table to match."
             echo
             cat "$NOTES_FILE"
             echo
@@ -68,7 +68,7 @@ jobs:
             echo
             echo "**CI has not run on this PR.** A PR opened by a workflow with the built-in token does not trigger workflows. Start it by running the \`ci\` workflow on branch \`$branch\` (Actions, ci, Run workflow), or by closing and reopening this PR. CI (and the kind workflow) must pass before this is merged."
             echo
-            echo "Also before merging: check that the nginx container is still \`containers/0\` in NGF's pod template, and update the README table and \`deploy/ngf/\` for the new version. This PR is never merged automatically."
+            echo "Also before merging: check that the nginx container is still \`containers/0\` in NGF's pod template, and, if the newest release changed, update \`deploy/ngf/\` and the docs that name it. This PR is never merged automatically."
             echo
             echo "Opened by $RUN_URL"
           } > "$BODY_FILE"
@@ -76,7 +76,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           gh auth setup-git
           git switch -c "$branch"
-          git add versions.json
+          git add versions.json README.md
           git commit -m "$title"
           # A leftover branch from an earlier closed PR is replaced, not a blocker.
           # The lease names the SHA seen now (empty: the branch must not exist).

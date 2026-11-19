@@ -7,6 +7,27 @@ a minor version may change behavior or configuration; the entry says how.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-19
+
+The module code is unchanged from 0.2.0; this release adds builds for newer
+NGF releases and moves the example manifests to the newest one.
+
+### Added
+
+- Builds for NGF 2.8.1 (NGINX 1.31.7) and NGF 2.9.0 (NGINX 1.31.9), `amd64`
+  and `arm64`, alongside NGF 2.8.0. Each release now ships one `.so` and one
+  ConfigMap asset per supported NGF version (the newest three).
+
+### Changed
+
+- `deploy/ngf/` targets NGF 2.9.0: the Helm chart version and the module
+  ConfigMap name (`decision-waf-nginx-module-ngf2.9.0`). Moving to it changes
+  the pod template and rolls the NGINX pods. On NGF 2.8.x, keep that release's
+  ConfigMap asset and set its name in `helm-values-patch.yaml`.
+- The contract and kind tests run against decision-waf 0.3.0.
+- ngf-watch regenerates the README's supported-versions table with
+  `versions.json`.
+
 ## [0.2.0] - 2026-10-22
 
 The project is renamed from Ailuros to decision-waf. This is a clean break:

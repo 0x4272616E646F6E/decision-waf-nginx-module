@@ -1,6 +1,6 @@
 # Installing the module on NGINX Gateway Fabric
 
-Example manifests for NGF 2.8.0, the newest release in `versions.json`
+Example manifests for NGF 2.8.1, the newest release in `versions.json`
 (a repo test keeps them in step). `make test-kind` applies them unmodified.
 The module is a ConfigMap mounted into NGF's stock NGINX
 image; no custom image is run.
@@ -23,22 +23,22 @@ here (`test/repo` checks that they agree with `versions.json`).
 
 ## Install
 
-1. **Gateway API CRDs and decision-waf.** Install the Gateway API CRDs NGF 2.8.0
+1. **Gateway API CRDs and decision-waf.** Install the Gateway API CRDs NGF 2.8.1
    documents, and run decision-waf with forward-auth on port 9002 behind a Service.
    The Service must exist before you apply the policy: `proxy_pass` has a
    literal host, which NGINX resolves when it loads the configuration, so
    without the Service `nginx -t` fails and NGF rejects the Gateway's config.
 2. **The module ConfigMap**, in the namespace where NGF runs the NGINX pods (the
    Gateway's namespace), before the pods start. Use the release asset
-   `decision-waf-nginx-module-ngf2.8.0-<arch>.yaml` (match the cluster's CPU
+   `decision-waf-nginx-module-ngf2.8.1-<arch>.yaml` (match the cluster's CPU
    architecture), as a remote kustomize resource or committed next to these
    files. To make one from a local build:
-   `scripts/configmap.sh out/ngx_http_decision_waf_module-<version>-ngf2.8.0-linux-<arch>.so 2.8.0 <arch> <namespace> | kubectl apply -f -`.
+   `scripts/configmap.sh out/ngx_http_decision_waf_module-<version>-ngf2.8.1-linux-<arch>.so 2.8.1 <arch> <namespace> | kubectl apply -f -`.
    Apply it with `kubectl apply --server-side`: client-side apply stores the object in the
    `last-applied-configuration` annotation (256 KiB cap) and the manifest is close to that. Flux
    applies server-side. Flux remote file resources are unverified; committing the release's YAML
    is the fallback.
-   The ConfigMap is named `decision-waf-nginx-module-ngf2.8.0`; the name carries the
+   The ConfigMap is named `decision-waf-nginx-module-ngf2.8.1`; the name carries the
    NGF version, so an NGF bump changes the pod template and rolls the pods.
 3. **NGF**, with `helm-values-patch.yaml` merged into your values.
 4. **Edit `snippetspolicy.yaml`**: `metadata.namespace` and `targetRefs[0].name`
@@ -66,10 +66,10 @@ Routes without a filter are never sent to decision-waf and carry no
 
 - **`containers/0` must be the nginx container.** The Helm patch adds the
   mount to `/spec/template/spec/containers/0/volumeMounts/-`, by index. On NGF
-  2.8.0 container 0 is `nginx` (the kind test asserts it). Re-check on every
+  2.8.1 container 0 is `nginx` (the kind test asserts it). Re-check on every
   NGF upgrade: `kubectl get deploy <gateway>-nginx -o jsonpath='{.spec.template.spec.containers[0].name}'`.
 - **The patch must be `type: JSONPatch`.** `StrategicMerge` merges lists by
-  index on NGF 2.8.0 and the Deployment is rejected.
+  index on NGF 2.8.1 and the Deployment is rejected.
 - **Snippets are off by default**: `nginxGateway.snippets.enable: true`.
 - **One build per NGF version.** Use the ConfigMap for the NGF version you run;
   an NGF upgrade needs the matching release first.

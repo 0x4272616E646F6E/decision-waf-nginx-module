@@ -33,9 +33,9 @@ inside NGF's data plane image exactly.
 
 | NGF | NGINX |
 |---|---|
+| 2.9.0 | 1.31.9 |
+| 2.8.1 | 1.31.7 |
 | 2.8.0 | 1.31.7 |
-| 2.7.2 | 1.31.6 |
-| 2.7.1 | 1.31.6 |
 
 The table mirrors [versions.json](versions.json) and a test checks that they
 agree. Release assets are built for `amd64` and `arm64`.
@@ -103,7 +103,7 @@ list of things to check. In short:
    client-side `kubectl apply` stores a copy of the object in, so use
    `kubectl apply --server-side` (Flux applies server-side already):
    ```sh
-   kubectl apply --server-side -n <gateway-namespace> -f decision-waf-nginx-module-ngf2.8.0-amd64.yaml
+   kubectl apply --server-side -n <gateway-namespace> -f decision-waf-nginx-module-ngf2.9.0-amd64.yaml
    ```
    A remote kustomize `resources:` entry pointing at the release asset works
    with `kubectl kustomize`; Flux remote file resources are unverified, so
@@ -114,7 +114,7 @@ list of things to check. In short:
    `StrategicMerge`) that addresses the nginx container as `containers/0`.
    Re-check that index on every NGF upgrade. The manifests in `deploy/ngf`
    target the newest supported NGF release (the first row of
-   `versions.json`; 2.8.0 today). For an older supported release, use that
+   `versions.json`; 2.9.0 today). For an older supported release, use that
    release's chart version and ConfigMap asset and change the version in the
    ConfigMap name in `helm-values-patch.yaml` to match (`make test-kind NGF=<ngf>`
    does exactly that substitution); see [deploy/ngf/README.md](deploy/ngf/README.md).
@@ -215,8 +215,8 @@ testing. A shell-portable choice: `ARCH=$(uname -m | sed 's/x86_64/amd64/; s/aar
 
 | Command | What it does |
 |---|---|
-| `make build NGF=2.8.0 ARCH=<host arch> VERSION=dev` | builds the `.so` inside NGF's stock image into `out/` (build this before `make test`) |
-| `make verify NGF=2.8.0` | compiles with `-Werror` and loads it with `nginx -t` |
+| `make build NGF=2.9.0 ARCH=<host arch> VERSION=dev` | builds the `.so` inside NGF's stock image into `out/` (build this before `make test`) |
+| `make verify NGF=2.9.0` | compiles with `-Werror` and loads it with `nginx -t` |
 | `make test` | repo, behaviour and contract suites |
 | `make test-asan` | the behaviour suite against an AddressSanitizer build |
 | `make test-contract` | the module against the published decision-waf |

@@ -33,9 +33,9 @@ inside NGF's data plane image exactly.
 
 | NGF | NGINX |
 |---|---|
+| 2.9.1 | 1.31.10 |
 | 2.9.0 | 1.31.9 |
 | 2.8.1 | 1.31.7 |
-| 2.8.0 | 1.31.7 |
 
 The table mirrors [versions.json](versions.json) and a test checks that they
 agree. Release assets are built for `amd64` and `arm64`.

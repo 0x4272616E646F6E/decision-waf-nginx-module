@@ -1,16 +1,16 @@
 [
   {
+    "ngf": "2.9.1",
+    "nginx": "1.31.10",
+    "nginx_sha256": "a9b690957fca84abdae8a9b52d66b1bb459282d7f01fe4b94b498ed8e977bdb3"
+  },
+  {
     "ngf": "2.9.0",
     "nginx": "1.31.9",
     "nginx_sha256": "a11c5eeee2e257f4478f0e649f84b0040787d277d2d3e5233952aa6b6dcb80ad"
   },
   {
     "ngf": "2.8.1",
-    "nginx": "1.31.7",
-    "nginx_sha256": "89ea8a3dc171511f7325043b50e4c036248d9fad5feb7ec809c0b82d5df42c65"
-  },
-  {
-    "ngf": "2.8.0",
     "nginx": "1.31.7",
     "nginx_sha256": "89ea8a3dc171511f7325043b50e4c036248d9fad5feb7ec809c0b82d5df42c65"
   }
